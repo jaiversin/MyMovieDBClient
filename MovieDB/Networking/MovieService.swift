@@ -7,6 +7,10 @@
 import Foundation
 import Combine
 
+enum MovieConstants {
+    static var posterBaseURL = URL(string: "https://image.tmdb.org/t/p/w500")
+}
+
 final class MovieService {
     private let apiKey = "2ee31abe59dffcca50f2c2876a0a3899"
     private let baseURL = URL(string: "https://api.themoviedb.org/3")!
@@ -50,6 +54,7 @@ final class MovieService {
         }
     }
     
+    /// This function should be used when a more dynamic/reactive use case is needed. For a one shot request like this list, it's better (for readability) to use async await mechanism.
     func fetchPopularMoviesPublisher() -> AnyPublisher<[Movie], Error> {
 //        guard let url = URL(string: "\(baseURL)/movie/popular?api_key=\(apiKey)") else {
 //            return Fail(error: URLError(.badURL))
