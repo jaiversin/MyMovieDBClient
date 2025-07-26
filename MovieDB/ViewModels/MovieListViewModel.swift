@@ -6,13 +6,12 @@
 //
 
 import Foundation
-import Combine
+import Observation
 
-@MainActor
-class MovieListViewModel: ObservableObject {
-    @Published var movies: [Movie] = []
-    @Published var errorMessage: String?
-    @Published var isLoading: Bool = false
+@Observable class MovieListViewModel {
+    var movies: [Movie] = []
+    var errorMessage: String?
+    var isLoading: Bool = false
     
     private let movieService: MovieService
 //    private var cancellables: Set<AnyCancellable> = []
@@ -26,6 +25,7 @@ class MovieListViewModel: ObservableObject {
 //        cancellables.forEach(\.cancel)
     }
     
+    @MainActor
     func fetchPopularMovies() async {
         defer {
             isLoading = false

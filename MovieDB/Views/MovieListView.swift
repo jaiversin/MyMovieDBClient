@@ -10,7 +10,7 @@ import SwiftUI
 struct MovieListView: View {
     // Use ObservedObject when it needs to be injected (used by more than one view or created by the parent)
 //    @ObservedObject var viewModel: MovieListViewModel
-    @StateObject var viewModel: MovieListViewModel = .init()
+    @State var viewModel: MovieListViewModel = .init()
     private let columns: [GridItem] = Array(repeating: .init(.flexible()), count: 2)
     
 //    init(viewModel: MovieListViewModel) {
