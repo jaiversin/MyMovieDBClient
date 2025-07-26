@@ -27,6 +27,8 @@ final class MovieService {
         return URLSession(configuration: configuration)
     }()
     
+    // MARK: - Async/Await
+    
     func fetchPopularMovies() async throws -> [Movie] {
         // Build the URL
 //        guard let url = URL(string: "\(baseURL)/movie/popular?api_key=\(apiKey)") else { throw URLError(.badURL) }
@@ -53,6 +55,34 @@ final class MovieService {
             throw error
         }
     }
+    
+    func getMoviesTrailer(movieId: Int) async throws -> Video? {
+        let url = baseURL
+            .appending(path: "/movie/\(movieId)/videos")
+            .appending(queryItems: [URLQueryItem(name: "api_key", value: apiKey)])
+            .appending(queryItems: [URLQueryItem(name: "language", value: "en-US")])
+        
+        let (responseData, response) = try await session.data(from: url)
+        
+        // If response was successful
+        guard let httpResponse = response as? HTTPURLResponse, 200..<300 ~= httpResponse.statusCode else {
+            // If not successful, throw an error. This can be improved by defining our own errors but by now we can leave it generic
+            throw URLError(.badServerResponse)
+        }
+        
+        do {
+            let movies = try jsonDecoder.decode(VideoResponse.self, from: responseData)
+            
+            return movies.results.filter { $0.isTrailerOnYoutube }.first
+        }
+        catch {
+            print("Failed to decode: \(error)")
+            throw error
+        }
+        
+    }
+    
+    // MARK: - Combine
     
     /// This function should be used when a more dynamic/reactive use case is needed. For a one shot request like this list, it's better (for readability) to use async await mechanism.
     func fetchPopularMoviesPublisher() -> AnyPublisher<[Movie], Error> {

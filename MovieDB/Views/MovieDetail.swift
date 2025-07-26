@@ -9,6 +9,9 @@ import SwiftUI
 
 struct MovieDetailView: View {
     let movie: Movie
+    private let movieService = MovieService() // Inject this dependency later using the Injected property wrapper
+    @State private var trailerURL: URL?
+    @State private var isTrailerVisible: Bool = false
     
     var body: some View {
         ScrollView {
@@ -25,6 +28,18 @@ struct MovieDetailView: View {
                         .overlay {
                             ProgressView()
                         }
+                }
+                .overlay {
+                    if trailerURL != nil {
+                        Button(action: {
+                            isTrailerVisible = true
+                        }) {
+                            Image(systemName: "play.circle.fill")
+                                .font(.system(size: 80))
+                                .foregroundStyle(.white.opacity(0.6))
+                                .shadow(radius: 10)
+                        }
+                    }
                 }
                 HStack {
                     Text("Overview")
@@ -58,6 +73,22 @@ struct MovieDetailView: View {
         }
         .navigationTitle(movie.title)
         .navigationBarTitleDisplayMode(.inline)
+        .task {
+            await loadTrailer()
+        }
+        .sheet(isPresented: $isTrailerVisible) {
+            if let trailerURL = trailerURL {
+                SafariView(url: trailerURL)
+            }
+        }
+    }
+    
+    private func loadTrailer() async {
+        do {
+            trailerURL =  try await movieService.getMoviesTrailer(movieId: movie.id)?.youtubeURL
+        } catch {
+            print("Failed to fetch video: \(error.localizedDescription)")
+        }
     }
 }
 

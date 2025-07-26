@@ -39,7 +39,7 @@ struct MovieCard: View {
                 }
                 // create a starts base rating usinge voteAverage
                 HStack(alignment: .top, spacing: 2) {
-                    ForEach(0..<Int(movie.voteAverage / 2)) { _ in
+                    ForEach(0..<Int(movie.voteAverage / 2), id: \.self) { _ in
                         Image(systemName: "star.fill")
                             .foregroundColor(.yellow)
                             .font(.system(size: 8))
