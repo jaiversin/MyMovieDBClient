@@ -7,22 +7,58 @@
 
 import Foundation
 import Observation
+import Combine
 
 @Observable class MovieListViewModel {
-    var movies: [Movie] = []
+    var searchQuery: String = "" {
+        didSet { searchSubject.send(searchQuery) }
+    }
+    
+    var movies: [Movie] = [] {
+        didSet { moviesSubject.send(movies) }
+    }
+    
+    private let searchSubject = PassthroughSubject<String, Never>()
+    private let moviesSubject = PassthroughSubject<[Movie], Never>()
+    
+    var filteredMovies: [Movie] = []
     var errorMessage: String?
     var isLoading: Bool = false
     
-    private let movieService: MovieService
-//    private var cancellables: Set<AnyCancellable> = []
+    private var cancellables: Set<AnyCancellable> = []
     
-    init(movieService: MovieService = MovieService()) {
-        self.movieService = movieService
+    fileprivate func setupSearchSubscription() {
+        let debouncedSearchPublisher = searchSubject
+            .debounce(for: 0.5, scheduler: DispatchQueue.main) // Same as using RunLoop.main, difference is RunLoop is a higher-level abstraction that manages event sources for th emain thread.
+            .removeDuplicates()
+        
+        debouncedSearchPublisher
+            .combineLatest(moviesSubject)
+            .map { [weak self] (query, movies) -> [Movie] in
+                guard let self else { return [] }
+                
+                let trimmedQuery = query.trimmingCharacters(in: .whitespaces)
+                
+                if trimmedQuery.isEmpty {
+                    return movies
+                }
+                
+                return self.movies.filter { $0.title.localizedCaseInsensitiveContains(trimmedQuery) }
+            }
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] (movies) in
+                self?.filteredMovies = movies
+            }
+            .store(in: &cancellables)
+    }
+    
+    init() {
+        setupSearchSubscription()
     }
     
     deinit {
         print("deinit MovieListViewModel")
-//        cancellables.forEach(\.cancel)
+        cancellables.removeAll()
     }
     
     @MainActor
@@ -34,7 +70,9 @@ import Observation
         errorMessage = nil
         
         do {
-            movies = try await movieService.fetchPopularMovies()
+            let fetchedMovies = try await MovieService.shared.fetchPopularMovies()
+            movies = fetchedMovies
+            filteredMovies = fetchedMovies
         } catch {
             errorMessage = "Failed to fetch movies: \(error)"
         }

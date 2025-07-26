@@ -45,9 +45,7 @@ struct FavoriteMoviesView: View {
     private let columns: [GridItem] = Array(repeating: .init(.flexible()), count: 2)
     
     private var favoriteMovies: [Movie] {
-        let filtered = movieListViewModel.movies.filter { favoritesStore.isFavorite(movieId: $0.id) }
-        print("Favorites: \(filtered)")
-        return filtered
+        movieListViewModel.movies.filter { favoritesStore.isFavorite(movieId: $0.id) }
     }
     
     var body: some View {
@@ -78,6 +76,7 @@ struct PopularMoviesView: View {
     @Environment(MovieListViewModel.self) private var movieListViewModel
     private let columns: [GridItem] = Array(repeating: .init(.flexible()), count: 2)
     
+    @State private var searchText: String = ""
     var body: some View {
         ScrollView {
             ZStack {
@@ -93,7 +92,7 @@ struct PopularMoviesView: View {
                         .padding()
                 } else {
                     LazyVGrid(columns: columns, spacing: 15) {
-                        ForEach(movieListViewModel.movies) { movie in
+                        ForEach(movieListViewModel.filteredMovies) { movie in
                             NavigationLink(destination: MovieDetailView(movie: movie)) {
                                 MovieCardView(movie: movie)
                             }
@@ -104,6 +103,13 @@ struct PopularMoviesView: View {
                 }
             }
             .navigationTitle("Popular Movies")
+            .searchable(text: $searchText, prompt: "Search")
+            .onChange(of: searchText) { _, newValue in
+                movieListViewModel.searchQuery = newValue
+            }
+//            .searchable(debouncingBy: 0.5) { value in
+//                movieListViewModel.searchQuery = value
+//            }
             .task {
                 if movieListViewModel.movies.isEmpty {
                     await movieListViewModel.fetchPopularMovies()

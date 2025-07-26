@@ -6,18 +6,49 @@
 //
 
 import SwiftUI
+import Observation
+
+@Observable
+final class MovieDetailVewModel {
+    // Inject this dependency later using the Injected property wrapper
+//    private let movieService = MovieService()
+    var trailerURL: URL?
+    let movie: Movie
+    
+    init(movie: Movie) {
+        self.movie = movie
+    }
+    
+    deinit {
+        print("Movie Detail ViewModel for \(movie.title) deinitialized")
+    }
+    
+    func getMoviesTrailer() async {
+        do {
+            let video = try await MovieService.shared.getMoviesTrailer(movieId: movie.id)
+            if let url = video?.youtubeURL {
+                trailerURL = url
+            }
+        } catch {
+            print("Unable to fetch trailer URL")
+        }
+    }
+}
 
 struct MovieDetailView: View {
     @Environment(FavoritesStore.self) private var favoritesStore
-    @State private var trailerURL: URL?
-    @State private var isTrailerVisible: Bool = false
-    let movie: Movie
-    private let movieService = MovieService() // Inject this dependency later using the Injected property wrapper
     
+    @State private var viewModel: MovieDetailVewModel
+    @State private var isTrailerVisible: Bool = false
+    
+    init(movie: Movie) {
+        _viewModel = State(initialValue: MovieDetailVewModel(movie: movie))
+    }
+
     var body: some View {
         ScrollView {
             VStack(alignment: .leading) {
-                AsyncImage(url: movie.posterPathURL) { image in
+                AsyncImage(url: viewModel.movie.posterPathURL) { image in
                     image
                         .resizable()
                         .aspectRatio(contentMode: .fit)
@@ -31,7 +62,7 @@ struct MovieDetailView: View {
                         }
                 }
                 .overlay {
-                    if trailerURL != nil {
+                    if viewModel.trailerURL != nil {
                         Button(action: {
                             isTrailerVisible = true
                         }) {
@@ -50,7 +81,7 @@ struct MovieDetailView: View {
                     // create a starts base rating usinge voteAverage
                     VStack {
                         HStack(alignment: .center, spacing: 1) {
-                            ForEach(0..<Int(movie.voteAverage / 2)) { _ in
+                            ForEach(0..<Int(viewModel.movie.voteAverage / 2)) { _ in
                                 Image(systemName: "star.fill")
                                     .foregroundColor(.yellow)
                                     .font(.system(size: 12))
@@ -59,47 +90,47 @@ struct MovieDetailView: View {
                         .font(.caption2)
                         .padding(.top, 8)
                         Button {
-                            favoritesStore.toggleFavorite(movieID: movie.id)
+                            favoritesStore.toggleFavorite(movieID: viewModel.movie.id)
                         } label: {
-                            Image(systemName: favoritesStore.isFavorite(movieId: movie.id) ? "heart.fill" : "heart")
+                            Image(systemName: favoritesStore.isFavorite(movieId: viewModel.movie.id) ? "heart.fill" : "heart")
                         }
                         .padding(.vertical, 7)
                     }
                 }
                 
-                if let releaseDate = movie.releaseDate {
+                if let releaseDate = viewModel.movie.releaseDate {
                     Text(releaseDate)
                         .font(.caption)
                         .foregroundStyle(.secondary)
                         .foregroundStyle(.gray)
                 }
                 
-                Text(movie.overview)
+                Text(viewModel.movie.overview)
                     .font(.body)
                     .lineLimit(nil)
                     .padding(.top)
             }
             .padding()
         }
-        .navigationTitle(movie.title)
+        .navigationTitle(viewModel.movie.title)
         .navigationBarTitleDisplayMode(.inline)
         .task {
-            await loadTrailer()
+            await viewModel.getMoviesTrailer()
         }
         .sheet(isPresented: $isTrailerVisible) {
-            if let trailerURL = trailerURL {
+            if let trailerURL = viewModel.trailerURL {
                 SafariView(url: trailerURL)
             }
         }
     }
     
-    private func loadTrailer() async {
-        do {
-            trailerURL =  try await movieService.getMoviesTrailer(movieId: movie.id)?.youtubeURL
-        } catch {
-            print("Failed to fetch video: \(error.localizedDescription)")
-        }
-    }
+//    private func loadTrailer() async {
+//        do {
+//            trailerURL =  try await MovieService.shared.getMoviesTrailer(movieId: movie.id)?.youtubeURL
+//        } catch {
+//            print("Failed to fetch video: \(error.localizedDescription)")
+//        }
+//    }
 }
 
 #Preview {

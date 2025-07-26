@@ -9,11 +9,13 @@ import Combine
 
 enum MovieConstants {
     static var posterBaseURL = URL(string: "https://image.tmdb.org/t/p/w500")
+    static var apiKey = "2ee31abe59dffcca50f2c2876a0a3899"
+    static var baseURL = URL(string: "https://api.themoviedb.org/3")!
 }
 
 final class MovieService {
-    private let apiKey = "2ee31abe59dffcca50f2c2876a0a3899"
-    private let baseURL = URL(string: "https://api.themoviedb.org/3")!
+    static var shared = MovieService()
+    
 
     private lazy var jsonDecoder: JSONDecoder = {
         let decoder = JSONDecoder()
@@ -33,9 +35,9 @@ final class MovieService {
         // Build the URL
 //        guard let url = URL(string: "\(baseURL)/movie/popular?api_key=\(apiKey)") else { throw URLError(.badURL) }
         
-        let url = baseURL
+        let url = MovieConstants.baseURL
                     .appending(path: "/movie/popular")
-                    .appending(queryItems: [URLQueryItem(name: "api_key", value: apiKey)])
+                    .appending(queryItems: [URLQueryItem(name: "api_key", value: MovieConstants.apiKey)])
         
         // Fetch data and response info
         let (responseData, response) = try await session.data(for: URLRequest(url: url))
@@ -57,9 +59,9 @@ final class MovieService {
     }
     
     func getMoviesTrailer(movieId: Int) async throws -> Video? {
-        let url = baseURL
+        let url = MovieConstants.baseURL
             .appending(path: "/movie/\(movieId)/videos")
-            .appending(queryItems: [URLQueryItem(name: "api_key", value: apiKey)])
+            .appending(queryItems: [URLQueryItem(name: "api_key", value: MovieConstants.apiKey)])
             .appending(queryItems: [URLQueryItem(name: "language", value: "en-US")])
         
         let (responseData, response) = try await session.data(from: url)
@@ -79,7 +81,6 @@ final class MovieService {
             print("Failed to decode: \(error)")
             throw error
         }
-        
     }
     
     // MARK: - Combine
@@ -90,9 +91,9 @@ final class MovieService {
 //            return Fail(error: URLError(.badURL))
 //                .eraseToAnyPublisher()
 //        }
-        let url = baseURL
+        let url = MovieConstants.baseURL
                     .appending(path: "/movie/popular")
-                    .appending(queryItems: [URLQueryItem(name: "api_key", value: apiKey)])
+                    .appending(queryItems: [URLQueryItem(name: "api_key", value: MovieConstants.apiKey)])
         
         let request = URLRequest(url: url)
         
