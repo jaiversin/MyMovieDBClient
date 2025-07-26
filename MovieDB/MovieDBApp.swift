@@ -10,6 +10,9 @@ import SwiftData
 
 @main
 struct MovieDBApp: App {
+    @State private var favoritesStore = FavoritesStore()
+    @State private var movieListViewModel = MovieListViewModel()
+    
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
             Item.self,
@@ -26,6 +29,8 @@ struct MovieDBApp: App {
     var body: some Scene {
         WindowGroup {
             MovieListView()
+                .environment(favoritesStore)
+                .environment(movieListViewModel)
         }
         .modelContainer(sharedModelContainer)
     }

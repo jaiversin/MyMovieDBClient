@@ -8,10 +8,11 @@
 import SwiftUI
 
 struct MovieDetailView: View {
-    let movie: Movie
-    private let movieService = MovieService() // Inject this dependency later using the Injected property wrapper
+    @Environment(FavoritesStore.self) private var favoritesStore
     @State private var trailerURL: URL?
     @State private var isTrailerVisible: Bool = false
+    let movie: Movie
+    private let movieService = MovieService() // Inject this dependency later using the Injected property wrapper
     
     var body: some View {
         ScrollView {
@@ -47,14 +48,23 @@ struct MovieDetailView: View {
                         .fontWeight(.semibold)
                     Spacer()
                     // create a starts base rating usinge voteAverage
-                    HStack(alignment: .center, spacing: 1) {
-                        ForEach(0..<Int(movie.voteAverage / 2)) { _ in
-                            Image(systemName: "star.fill")
-                                .foregroundColor(.yellow)
-                                .font(.system(size: 12))
+                    VStack {
+                        HStack(alignment: .center, spacing: 1) {
+                            ForEach(0..<Int(movie.voteAverage / 2)) { _ in
+                                Image(systemName: "star.fill")
+                                    .foregroundColor(.yellow)
+                                    .font(.system(size: 12))
+                            }
                         }
+                        .font(.caption2)
+                        .padding(.top, 8)
+                        Button {
+                            favoritesStore.toggleFavorite(movieID: movie.id)
+                        } label: {
+                            Image(systemName: favoritesStore.isFavorite(movieId: movie.id) ? "heart.fill" : "heart")
+                        }
+                        .padding(.vertical, 7)
                     }
-                    .font(.caption2)
                 }
                 
                 if let releaseDate = movie.releaseDate {
@@ -95,5 +105,6 @@ struct MovieDetailView: View {
 #Preview {
     NavigationStack {
         MovieDetailView(movie: Movie.mockMovies()[0])
+            .environment(FavoritesStore())
     }
 }

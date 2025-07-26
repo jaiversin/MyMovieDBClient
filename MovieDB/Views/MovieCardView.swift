@@ -1,12 +1,12 @@
 //
-//  MovieCard.swift
+//  MovieCardView.swift
 //  MovieDB
 //
 //  Created by Jhon Lopez on 7/25/25.
 //
 import SwiftUI
 
-struct MovieCard: View {
+struct MovieCardView: View {
     let movie: Movie
     var body: some View {
         VStack(alignment: .center, spacing: 5) {
@@ -56,5 +56,5 @@ struct MovieCard: View {
 }
 
 #Preview {
-    MovieCard(movie: Movie.mockMovies()[0])
+    MovieCardView(movie: Movie.mockMovies()[0])
 }
