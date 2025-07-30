@@ -29,7 +29,8 @@ final class MovieService {
         return URLSession(configuration: configuration)
     }()
     
-    private let movieCache = CacheStore<NSString, MovieArrayWrapper>()
+    private let movieSearchCache = CacheStore<NSString, MovieArrayWrapper>()
+    private let popularMoviesCache = PaginatedCacheStore()
     
     // MARK: - Async/Await
     
@@ -37,7 +38,7 @@ final class MovieService {
         guard !query.isEmpty else { return [] }
         let cacheKey = query as NSString
         
-        if let cachedDataWrapper = movieCache.object(forKey: cacheKey) {
+        if let cachedDataWrapper = movieSearchCache.object(forKey: cacheKey) {
             print("Returning search results for \(query) from cache...")
             return cachedDataWrapper.movies
         }
@@ -65,7 +66,7 @@ final class MovieService {
             let movies = moviesResponse.results
             
             let wrapper = MovieArrayWrapper(movies: movies)
-            movieCache.set(wrapper, forKey: cacheKey)
+            movieSearchCache.set(wrapper, forKey: cacheKey)
             
             return movies
         }
@@ -75,10 +76,14 @@ final class MovieService {
         }
     }
 
-    func fetchPopularMovies() async throws -> [Movie] {
-        let cacheKey = MovieConstants.popularMoviesCacheKey
+    func fetchPopularMovies(page: Int, forceRefresh: Bool = false) async throws -> [Movie] {
+        if forceRefresh {
+            popularMoviesCache.invalidateAll()
+        }
         
-        if let cachedDataWrapper = movieCache.object(forKey: cacheKey) {
+        let cacheKey = "\(MovieConstants.popularMoviesCacheKey)_page_\(page)" as NSString
+        
+        if let cachedDataWrapper = popularMoviesCache.getObject(forKey: cacheKey) {
             print("Returning cached data for popular movies")
             return cachedDataWrapper.movies
         }
@@ -90,7 +95,10 @@ final class MovieService {
         
         let url = MovieConstants.baseURL
                     .appending(path: "/movie/popular")
-                    .appending(queryItems: [URLQueryItem(name: "api_key", value: MovieConstants.apiKey)])
+                    .appending(queryItems: [
+                        URLQueryItem(name: "api_key", value: MovieConstants.apiKey),
+                        URLQueryItem(name: "page", value: "\(page)")
+                    ])
         
         // Fetch data and response info
         let (responseData, response) = try await session.data(for: URLRequest(url: url))
@@ -102,8 +110,13 @@ final class MovieService {
         }
         
         do {
-            let movies = try jsonDecoder.decode(MovieResponse.self, from: responseData)
-            return movies.results
+            let moviesResponse = try jsonDecoder.decode(MovieResponse.self, from: responseData)
+            let movies = moviesResponse.results
+            
+            let wrapper = MovieArrayWrapper(movies: movies)
+            popularMoviesCache.set(wrapper, forKey: cacheKey)
+            
+            return movies
         }
         catch {
             print("Failed to decode: \(error)")
@@ -139,14 +152,17 @@ final class MovieService {
     // MARK: - Combine
     
     /// This function should be used when a more dynamic/reactive use case is needed. For a one shot request like this list, it's better (for readability) to use async await mechanism.
-    func fetchPopularMoviesPublisher() -> AnyPublisher<[Movie], Error> {
+    func fetchPopularMoviesPublisher(page: Int = 1) -> AnyPublisher<[Movie], Error> {
 //        guard let url = URL(string: "\(baseURL)/movie/popular?api_key=\(apiKey)") else {
 //            return Fail(error: URLError(.badURL))
 //                .eraseToAnyPublisher()
 //        }
         let url = MovieConstants.baseURL
                     .appending(path: "/movie/popular")
-                    .appending(queryItems: [URLQueryItem(name: "api_key", value: MovieConstants.apiKey)])
+                    .appending(queryItems: [
+                        URLQueryItem(name: "api_key", value: MovieConstants.apiKey),
+                        URLQueryItem(name: "page", value: "\(page)")
+                    ])
         
         let request = URLRequest(url: url)
         

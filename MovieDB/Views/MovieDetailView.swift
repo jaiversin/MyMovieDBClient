@@ -20,7 +20,7 @@ final class MovieDetailVewModel {
     }
     
     deinit {
-        print("Movie Detail ViewModel for \(movie.title) deinitialized")
+//        print("Movie Detail ViewModel for \(movie.title) deinitialized")
     }
     
     func getMoviesTrailer() async {
