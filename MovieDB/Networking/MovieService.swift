@@ -11,6 +11,7 @@ enum MovieConstants {
     static var posterBaseURL = URL(string: "https://image.tmdb.org/t/p/w500")
     static var apiKey = "2ee31abe59dffcca50f2c2876a0a3899"
     static var baseURL = URL(string: "https://api.themoviedb.org/3")!
+    static var popularMoviesCacheKey: NSString = "popularMovies"
 }
 
 final class MovieService {
@@ -28,10 +29,20 @@ final class MovieService {
         return URLSession(configuration: configuration)
     }()
     
+    private let movieCache = CacheStore<NSString, MovieArrayWrapper>()
+    
     // MARK: - Async/Await
     
     func searchMovies(query: String) async throws -> [Movie] {
         guard !query.isEmpty else { return [] }
+        let cacheKey = query as NSString
+        
+        if let cachedDataWrapper = movieCache.object(forKey: cacheKey) {
+            print("Returning search results for \(query) from cache...")
+            return cachedDataWrapper.movies
+        }
+        
+        print(#function, "Fetching search results for \(query) from API...")
 
         let url = MovieConstants.baseURL
             .appending(path: "search/movie")
@@ -50,8 +61,13 @@ final class MovieService {
         }
 
         do {
-            let movies = try jsonDecoder.decode(MovieResponse.self, from: responseData)
-            return movies.results
+            let moviesResponse = try jsonDecoder.decode(MovieResponse.self, from: responseData)
+            let movies = moviesResponse.results
+            
+            let wrapper = MovieArrayWrapper(movies: movies)
+            movieCache.set(wrapper, forKey: cacheKey)
+            
+            return movies
         }
         catch {
             print("Failed to decode: \(error)")
@@ -60,6 +76,15 @@ final class MovieService {
     }
 
     func fetchPopularMovies() async throws -> [Movie] {
+        let cacheKey = MovieConstants.popularMoviesCacheKey
+        
+        if let cachedDataWrapper = movieCache.object(forKey: cacheKey) {
+            print("Returning cached data for popular movies")
+            return cachedDataWrapper.movies
+        }
+        
+        print("Fetching popular movies from network")
+        
         // Build the URL
 //        guard let url = URL(string: "\(baseURL)/movie/popular?api_key=\(apiKey)") else { throw URLError(.badURL) }
         
