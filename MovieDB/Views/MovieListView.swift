@@ -102,18 +102,19 @@ struct PopularMoviesView: View {
                     .padding(.horizontal)
                 }
             }
-            .navigationTitle("Popular Movies")
-            .searchable(text: $searchText, prompt: "Search")
-            .onChange(of: searchText) { _, newValue in
-                movieListViewModel.searchQuery = newValue
-            }
+            
+        }
+        .navigationTitle("Popular Movies")
+        .searchable(text: $searchText, prompt: "Search")
+        .onChange(of: searchText) { _, newValue in
+            movieListViewModel.searchQuery = newValue
+        }
 //            .searchable(debouncingBy: 0.5) { value in
 //                movieListViewModel.searchQuery = value
 //            }
-            .task {
-                if movieListViewModel.movies.isEmpty {
-                    await movieListViewModel.fetchPopularMovies()
-                }
+        .task {
+            if movieListViewModel.movies.isEmpty {
+                await movieListViewModel.fetchPopularMovies()
             }
         }
     }

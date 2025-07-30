@@ -15,7 +15,6 @@ enum MovieConstants {
 
 final class MovieService {
     static var shared = MovieService()
-    
 
     private lazy var jsonDecoder: JSONDecoder = {
         let decoder = JSONDecoder()
@@ -31,6 +30,35 @@ final class MovieService {
     
     // MARK: - Async/Await
     
+    func searchMovies(query: String) async throws -> [Movie] {
+        guard !query.isEmpty else { return [] }
+
+        let url = MovieConstants.baseURL
+            .appending(path: "search/movie")
+            .appending(queryItems: [
+                URLQueryItem(name: "query", value: query),
+                URLQueryItem(name: "api_key", value: MovieConstants.apiKey)
+            ])
+
+        // Fetch data and response info
+        let (responseData, response) = try await session.data(for: URLRequest(url: url))
+
+        // If response was successful
+        guard let httpResponse = response as? HTTPURLResponse, 200..<300 ~= httpResponse.statusCode else {
+            // If not successful, throw an error. This can be improved by defining our own errors but by now we can leave it generic
+            throw URLError(.badServerResponse)
+        }
+
+        do {
+            let movies = try jsonDecoder.decode(MovieResponse.self, from: responseData)
+            return movies.results
+        }
+        catch {
+            print("Failed to decode: \(error)")
+            throw error
+        }
+    }
+
     func fetchPopularMovies() async throws -> [Movie] {
         // Build the URL
 //        guard let url = URL(string: "\(baseURL)/movie/popular?api_key=\(apiKey)") else { throw URLError(.badURL) }
@@ -57,21 +85,21 @@ final class MovieService {
             throw error
         }
     }
-    
+
     func getMoviesTrailer(movieId: Int) async throws -> Video? {
         let url = MovieConstants.baseURL
             .appending(path: "/movie/\(movieId)/videos")
             .appending(queryItems: [URLQueryItem(name: "api_key", value: MovieConstants.apiKey)])
             .appending(queryItems: [URLQueryItem(name: "language", value: "en-US")])
-        
+
         let (responseData, response) = try await session.data(from: url)
-        
+
         // If response was successful
         guard let httpResponse = response as? HTTPURLResponse, 200..<300 ~= httpResponse.statusCode else {
             // If not successful, throw an error. This can be improved by defining our own errors but by now we can leave it generic
             throw URLError(.badServerResponse)
         }
-        
+
         do {
             let movies = try jsonDecoder.decode(VideoResponse.self, from: responseData)
             
@@ -82,7 +110,7 @@ final class MovieService {
             throw error
         }
     }
-    
+
     // MARK: - Combine
     
     /// This function should be used when a more dynamic/reactive use case is needed. For a one shot request like this list, it's better (for readability) to use async await mechanism.
@@ -107,5 +135,18 @@ final class MovieService {
             .decode(type: MovieResponse.self, decoder: jsonDecoder)
             .map(\.results)
             .eraseToAnyPublisher()
+    }
+    
+    func searchMoviesPublisher(query: String) -> AnyPublisher<[Movie], Error> {
+        Future<[Movie], Error> { promise in
+            Task {
+                do {
+                    let movies = try await self.searchMovies(query: query)
+                    promise(.success(movies))
+                } catch {
+                    promise(.failure(error))
+                }
+            }
+        }.eraseToAnyPublisher()
     }
 }

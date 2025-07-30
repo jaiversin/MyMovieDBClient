@@ -28,26 +28,33 @@ import Combine
     private var cancellables: Set<AnyCancellable> = []
     
     fileprivate func setupSearchSubscription() {
-        let debouncedSearchPublisher = searchSubject
+        searchSubject
             .debounce(for: 0.5, scheduler: DispatchQueue.main) // Same as using RunLoop.main, difference is RunLoop is a higher-level abstraction that manages event sources for th emain thread.
             .removeDuplicates()
-        
-        debouncedSearchPublisher
-            .combineLatest(moviesSubject)
-            .map { [weak self] (query, movies) -> [Movie] in
-                guard let self else { return [] }
-                
-                let trimmedQuery = query.trimmingCharacters(in: .whitespaces)
-                
-                if trimmedQuery.isEmpty {
-                    return movies
+            .map { [weak self] query -> AnyPublisher<[Movie], Never> in
+                guard let self else {
+                    // either case works as an empty response
+                    return Just([]).eraseToAnyPublisher()
+//                    return Empty<[Movie], Never>().eraseToAnyPublisher()
                 }
                 
-                return self.movies.filter { $0.title.localizedCaseInsensitiveContains(trimmedQuery) }
+                let trimmedQuery = query.trimmingCharacters(in: .whitespaces)
+                if trimmedQuery.isEmpty {
+                    return Just(self.movies).eraseToAnyPublisher()
+                } else {
+                    return MovieService.shared.searchMoviesPublisher(query: trimmedQuery)
+                        .catch { error -> Just<[Movie]> in
+                            print("Error searching movies: \(error)")
+                            return Just([])
+                        }
+                        .eraseToAnyPublisher()
+                }
+                
             }
+            .switchToLatest()
             .receive(on: DispatchQueue.main)
-            .sink { [weak self] (movies) in
-                self?.filteredMovies = movies
+            .sink { [weak self] (searchResultMovies) in
+                self?.filteredMovies = searchResultMovies
             }
             .store(in: &cancellables)
     }
