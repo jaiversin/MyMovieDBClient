@@ -19,6 +19,7 @@ struct MovieDBApp: App {
         do {
             let schema = Schema([
                 PersistentMovie.self,
+                CacheMetadata.self,
             ])
             let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
             modelContainer = try ModelContainer(for: schema, configurations: [modelConfiguration])

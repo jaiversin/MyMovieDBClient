@@ -8,11 +8,11 @@
 import Foundation
 import Observation
 import Combine
+import SwiftData
 
 @Observable class MovieListViewModel {
     // MARK: - Injected Properties
-    @ObservationIgnored
-    @Injected(\.presentationDependencies.movieRepository) private var movieRepository: MovieRepository
+    @Injected(\.presentationDependencies.movieRepository) @ObservationIgnored private var movieRepository: MovieRepository
 
     // MARK: - Published Properties
     var filteredMovies: [Movie] = []
@@ -47,18 +47,25 @@ import Combine
     // MARK: - Public API
 
     @MainActor
+    fileprivate func fetchPopularMovies() async throws {
+        let fetchedMovies = try await movieRepository.getPopularMovies(page: 1)
+        popularMovies = fetchedMovies
+        filteredMovies = fetchedMovies
+    }
+    
+    @MainActor
     func fetchInitialMovies() async {
-        guard !isLoading else { return }
-        
         isLoading = true
         errorMessage = nil
         currentPage = 1
         canLoadMorePages = true
         
         do {
-            let fetchedMovies = try await movieRepository.getPopularMovies(page: currentPage)
-            popularMovies = fetchedMovies
-            filteredMovies = fetchedMovies
+            if await movieRepository.isPopularMoviesCacheStale() {
+                try await movieRepository.clearPopularMovieCache()
+                try await movieRepository.updatePopularMoviesCacheTimestamp()
+            }
+            try await fetchPopularMovies()
         } catch {
             errorMessage = "Failed to fetch movies: \(error.localizedDescription)"
         }
@@ -75,19 +82,11 @@ import Combine
 
         do {
             let fetchedMovies = try await movieRepository.getPopularMovies(page: currentPage)
-            
-            // Create a set of existing IDs for efficient lookup
-            let existingIDs = Set(self.popularMovies.map { $0.id })
-            
-            // Filter out any movies we already have
-            let uniqueNewMovies = fetchedMovies.filter { !existingIDs.contains($0.id) }
-            
-            if uniqueNewMovies.isEmpty {
-                // If the API returns no *new* movies, stop paginating
+            if fetchedMovies.isEmpty {
                 canLoadMorePages = false
             } else {
-                popularMovies.append(contentsOf: uniqueNewMovies)
-                filteredMovies.append(contentsOf: uniqueNewMovies)
+                popularMovies.append(contentsOf: fetchedMovies)
+                filteredMovies.append(contentsOf: fetchedMovies)
             }
         } catch {
             currentPage -= 1 // Give the user a chance to re-try

@@ -73,4 +73,41 @@ final class DefaultMovieRepository: MovieRepository {
         
         return movie
     }
+    
+    @MainActor
+    func clearPopularMovieCache() async throws {
+        try swiftDataStore.mainContext.delete(model: PersistentMovie.self)
+        try swiftDataStore.mainContext.delete(model: CacheMetadata.self)
+        try swiftDataStore.mainContext.save()
+    }
+    
+    @MainActor
+    func isPopularMoviesCacheStale() async -> Bool {
+        let fetchDescriptor = FetchDescriptor<CacheMetadata>(
+            predicate: #Predicate { $0.key == "popularMovies" }
+        )
+        
+        guard let metadata = try? swiftDataStore.mainContext.fetch(fetchDescriptor).first else {
+            return true // No metadata, so it's stale
+        }
+        
+        let sixHoursAgo = Calendar.current.date(byAdding: .hour, value: -6, to: Date())!
+        return metadata.lastRefreshed < sixHoursAgo
+    }
+    
+    @MainActor
+    func updatePopularMoviesCacheTimestamp() async throws {
+        let fetchDescriptor = FetchDescriptor<CacheMetadata>(
+            predicate: #Predicate { $0.key == "popularMovies" }
+        )
+        
+        if let metadata = try? swiftDataStore.mainContext.fetch(fetchDescriptor).first {
+            metadata.lastRefreshed = Date()
+        } else {
+            let newMetadata = CacheMetadata(key: "popularMovies", lastRefreshed: Date())
+            swiftDataStore.mainContext.insert(newMetadata)
+        }
+        
+        try swiftDataStore.mainContext.save()
+    }
 }
