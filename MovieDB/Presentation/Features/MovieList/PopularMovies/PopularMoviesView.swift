@@ -7,7 +7,7 @@
 import SwiftUI
 
 struct PopularMoviesView: View {
-    @Environment(MovieListViewModel.self) private var movieListViewModel
+    @State private var movieListViewModel = MovieListViewModel()
     private let columns: [GridItem] = Array(repeating: .init(.flexible()), count: 2)
     
     @State private var searchText: String = ""
@@ -52,13 +52,13 @@ struct PopularMoviesView: View {
 //            .searchable(debouncingBy: 0.5) { value in
 //                movieListViewModel.searchQuery = value
 //            }
-        .refreshable {
-            await movieListViewModel.fetchPopularMovies()
-        }
         .task {
-            if movieListViewModel.movies.isEmpty {
-                await movieListViewModel.fetchPopularMovies()
+            if movieListViewModel.filteredMovies.isEmpty {
+                await movieListViewModel.fetchInitialMovies()
             }
+        }
+        .refreshable {
+            await movieListViewModel.fetchInitialMovies()
         }
     }
 }

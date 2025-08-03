@@ -51,7 +51,8 @@ final class MovieService {
             .appending(path: "search/movie")
             .appending(queryItems: [
                 URLQueryItem(name: "query", value: query),
-                URLQueryItem(name: "api_key", value: MovieConstants.apiKey)
+                URLQueryItem(name: "api_key", value: MovieConstants.apiKey),
+                URLQueryItem(name: "sort_by", value: "vote_average.desc")
             ])
 
         // Fetch data and response info
@@ -78,19 +79,20 @@ final class MovieService {
         }
     }
 
+    /// The MovieDB API has a restriction for pagination of 20 results. This cannot be modified.
     func fetchPopularMovies(page: Int, forceRefresh: Bool = false) async throws -> [Movie] {
-        if forceRefresh {
-            popularMoviesCache.invalidateAll()
-        }
-        
-        let cacheKey = "\(MovieConstants.popularMoviesCacheKey)_page_\(page)" as NSString
-        
-        if let cachedDataWrapper = popularMoviesCache.getObject(forKey: cacheKey) {
-            print("Returning cached data for popular movies")
-            return cachedDataWrapper.movies
-        }
-        
-        print("Fetching popular movies from network")
+//        if forceRefresh {
+//            popularMoviesCache.invalidateAll()
+//        }
+//        
+//        let cacheKey = "\(MovieConstants.popularMoviesCacheKey)_page_\(page)" as NSString
+//        
+//        if let cachedDataWrapper = popularMoviesCache.getObject(forKey: cacheKey) {
+//            print("Returning cached data for popular movies")
+//            return cachedDataWrapper.movies
+//        }
+//        
+//        print("Fetching popular movies from network")
         
         // Build the URL
 //        guard let url = URL(string: "\(baseURL)/movie/popular?api_key=\(apiKey)") else { throw URLError(.badURL) }
@@ -99,7 +101,8 @@ final class MovieService {
                     .appending(path: "/movie/popular")
                     .appending(queryItems: [
                         URLQueryItem(name: "api_key", value: MovieConstants.apiKey),
-                        URLQueryItem(name: "page", value: "\(page)")
+                        URLQueryItem(name: "page", value: "\(page)"),
+                        URLQueryItem(name: "sort_by", value: "vote_average.desc")
                     ])
         
         // Fetch data and response info
@@ -115,13 +118,33 @@ final class MovieService {
             let moviesResponse = try jsonDecoder.decode(MovieResponse.self, from: responseData)
             let movies = moviesResponse.results
             
-            let wrapper = MovieArrayWrapper(movies: movies)
-            popularMoviesCache.set(wrapper, forKey: cacheKey)
+//            let wrapper = MovieArrayWrapper(movies: movies)
+//            popularMoviesCache.set(wrapper, forKey: cacheKey)
             
             return movies
         }
         catch {
             print("Failed to decode: \(error)")
+            throw error
+        }
+    }
+
+    func getMovieDetails(id: Int) async throws -> Movie {
+        let url = MovieConstants.baseURL
+            .appending(path: "/movie/\(id)")
+            .appending(queryItems: [URLQueryItem(name: "api_key", value: MovieConstants.apiKey)])
+
+        let (responseData, response) = try await session.data(from: url)
+
+        guard let httpResponse = response as? HTTPURLResponse, 200..<300 ~= httpResponse.statusCode else {
+            throw URLError(.badServerResponse)
+        }
+
+        do {
+            let movie = try jsonDecoder.decode(Movie.self, from: responseData)
+            return movie
+        } catch {
+            print("Failed to decode movie details: \(error)")
             throw error
         }
     }

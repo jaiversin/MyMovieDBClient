@@ -36,7 +36,7 @@ final class MovieDetailVewModel {
 }
 
 struct MovieDetailView: View {
-    @Environment(FavoritesStore.self) private var favoritesStore
+    @Injected(\.presentationDependencies.favoritesStore) private var favoritesStore
     
     @State private var viewModel: MovieDetailVewModel
     @State private var isTrailerVisible: Bool = false

@@ -11,7 +11,7 @@ import Foundation
 final class Injected<T> {
     private let keyPath: KeyPath<DependenciesContainer, T>
     var wrappedValue: T {
-        DependenciesContainer.assembly[keyPath: keyPath]
+        DependenciesContainer.shared[keyPath: keyPath]
     }
     
     init(_ keyPath: KeyPath<DependenciesContainer, T>) {

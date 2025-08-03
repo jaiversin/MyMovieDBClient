@@ -7,26 +7,26 @@
 import SwiftUI
 
 struct FavoriteMoviesView: View {
-    @Injected(\.presentationDependencies.favoritesStore) private var favoritesStore
-    @Environment(MovieListViewModel.self) private var movieListViewModel
+    @State private var viewModel = FavoriteMoviesViewModel()
     
     private let columns: [GridItem] = Array(repeating: .init(.flexible()), count: 2)
     
-    private var favoriteMovies: [Movie] {
-        movieListViewModel.movies.filter { favoritesStore.isFavorite(movieId: $0.id) }
-    }
-    
     var body: some View {
         ScrollView {
-            if favoriteMovies.isEmpty {
+            if viewModel.isLoading {
+                ProgressView()
+            } else if let errorMessage = viewModel.errorMessage {
+                Text(errorMessage)
+                    .foregroundColor(.red)
+                    .padding()
+            } else if viewModel.favoriteMovies.isEmpty {
                 Text("No favorites yet")
                     .font(.headline)
                     .foregroundStyle(.secondary)
                     .padding()
             } else {
-                // Don't duplicate, extract this view
                 LazyVGrid(columns: columns, spacing: 15) {
-                    ForEach(favoriteMovies) { movie in
+                    ForEach(viewModel.favoriteMovies) { movie in
                         NavigationLink(destination: MovieDetailView(movie: movie)) {
                             MovieCardView(movie: movie)
                         }
@@ -37,5 +37,8 @@ struct FavoriteMoviesView: View {
             }
         }
         .navigationTitle("Favorites")
+        .task {
+            await viewModel.fetchFavoriteMovies()
+        }
     }
 }

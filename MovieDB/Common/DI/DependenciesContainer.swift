@@ -5,42 +5,38 @@
 //  Created by Jhon Lopez on 8/2/25.
 //
 import Foundation
+import SwiftData
 
 struct DependenciesContainer {
     
+    static var shared: DependenciesContainer!
+    
     struct PresentationDependencies {
-        let movieService: MovieService
+        let movieRepository: MovieRepository
         let favoritesStore: FavoritesStore
     }
     
     struct DataDependencies {
         let cache: CacheStore<NSString, MovieArrayWrapper>
         let popularMoviesCache: PaginatedCacheStore
+        let swiftDataContainer: ModelContainer
     }
     
-    private(set) var presentationDependencies: PresentationDependencies
-    private(set) var dataDependencies: DataDependencies
+    let presentationDependencies: PresentationDependencies
+    let dataDependencies: DataDependencies
     
-    // TODO: Check if I can delegate the creation of the assembly to the main app
-    static var assembly: DependenciesContainer = {
-#if DEBUG
-        return DependenciesContainer.assembleRealApp()  // .assembleMockApp()
-#else
-        return DependenciesContainer.assembleRealApp()
-#endif
-    }()
-    
-    static func assembleRealApp() -> DependenciesContainer {
-        let vmDependencies = PresentationDependencies(
-            movieService: MovieService(),
-            favoritesStore: FavoritesStore()
-        )
-
-        let dataDependencies = DataDependencies(
+    init(modelContainer: ModelContainer) {
+        let movieService = MovieService()
+        
+        self.dataDependencies = DataDependencies(
             cache: CacheStore<NSString, MovieArrayWrapper>(),
-            popularMoviesCache: PaginatedCacheStore()
+            popularMoviesCache: PaginatedCacheStore(),
+            swiftDataContainer: modelContainer
         )
         
-        return .init(presentationDependencies: vmDependencies, dataDependencies: dataDependencies)
+        self.presentationDependencies = PresentationDependencies(
+            movieRepository: DefaultMovieRepository(movieService: movieService, swiftDataStore: modelContainer),
+            favoritesStore: FavoritesStore()
+        )
     }
 }

@@ -39,3 +39,22 @@ Implemented infinite scrolling for the popular movies list with a robust, multi-
 - Implementing pull-to-refresh with SwiftUI's `.refreshable` modifier.
 - The importance of cache invalidation strategies (`forceRefresh` flag).
 - Designing and implementing scoped caches to prevent side effects and ensure data consistency.
+
+---
+
+## Offline support - Popular Movies
+
+
+Pending:
+
+- [X] Fix this error on the PersistentMovie class "Cannot expand accessor macro on variable declared with 'let'; this is an error in the Swift 6 language mode"
+- [X] In the DefaultMovieRepository, should we use Injected for the dependencies or we only want to inject them via init? R:/ Init dependencies are clenaer and provide better testability.
+- [ ] When/how do we want to update the offline database? If we have data already stored in SwiftData, should we have a Time To Live strategy to fetch data from services and upsert (update/insert) the database? R:/ Our Recommended Strategy: A Hybrid Approach
+
+
+  The best user experience often comes from combining these strategies. I recommend we implement a hybrid of Stale-While-Revalidate and Manual Refresh.
+
+
+   * On View Appear: We'll use SWR. The popular movies list will load instantly from the database. If it's been more than, say, 6 hours (our TTL), we'll fetch the latest list in the
+     background.
+   * User-Initiated: The pull-to-refresh action will always force a fetch, ignoring the TTL, giving the user control when they want the absolute latest data.
