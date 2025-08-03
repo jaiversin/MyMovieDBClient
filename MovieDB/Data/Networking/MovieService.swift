@@ -16,6 +16,11 @@ enum MovieConstants {
 
 final class MovieService {
     static var shared = MovieService()
+    
+    @Injected(\.dataDependencies.cache)
+    private var movieSearchCache: CacheStore<NSString, MovieArrayWrapper>
+    @Injected(\.dataDependencies.popularMoviesCache)
+    private var popularMoviesCache: PaginatedCacheStore
 
     private lazy var jsonDecoder: JSONDecoder = {
         let decoder = JSONDecoder()
@@ -28,9 +33,6 @@ final class MovieService {
         configuration.httpAdditionalHeaders = ["Content-Type": "application/json"]
         return URLSession(configuration: configuration)
     }()
-    
-    private let movieSearchCache = CacheStore<NSString, MovieArrayWrapper>()
-    private let popularMoviesCache = PaginatedCacheStore()
     
     // MARK: - Async/Await
     

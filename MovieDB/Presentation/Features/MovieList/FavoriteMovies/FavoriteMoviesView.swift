@@ -7,7 +7,7 @@
 import SwiftUI
 
 struct FavoriteMoviesView: View {
-    @Environment(FavoritesStore.self) private var favoritesStore
+    @Injected(\.presentationDependencies.favoritesStore) private var favoritesStore
     @Environment(MovieListViewModel.self) private var movieListViewModel
     
     private let columns: [GridItem] = Array(repeating: .init(.flexible()), count: 2)
