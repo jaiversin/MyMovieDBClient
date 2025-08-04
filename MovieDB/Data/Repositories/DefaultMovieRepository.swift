@@ -10,10 +10,10 @@ import Foundation
 import SwiftData
 
 final class DefaultMovieRepository: MovieRepository {
-    private let movieService: MovieService
+    private let movieService: MovieServiceProtocol
     private let swiftDataStore: ModelContainer
     
-    init(movieService: MovieService, swiftDataStore: ModelContainer) {
+    init(movieService: MovieServiceProtocol, swiftDataStore: ModelContainer) {
         self.movieService = movieService
         self.swiftDataStore = swiftDataStore
     }
@@ -32,7 +32,7 @@ final class DefaultMovieRepository: MovieRepository {
             return persistedMovies.map { MovieMapper.toDomain(model: $0) }
         }
         
-        let popularMovies = try await movieService.fetchPopularMovies(page: page)
+        let popularMovies = try await movieService.fetchPopularMovies(page: page, forceRefresh: false)
         
         for movie in popularMovies {
             let persistentMovie = MovieMapper.toPersistent(model: movie)

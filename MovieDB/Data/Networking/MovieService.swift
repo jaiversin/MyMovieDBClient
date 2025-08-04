@@ -14,7 +14,7 @@ enum MovieConstants {
     static var popularMoviesCacheKey: NSString = "popularMovies"
 }
 
-final class MovieService {
+final class MovieService: MovieServiceProtocol {
     static var shared = MovieService()
     
     @Injected(\.dataDependencies.cache)
