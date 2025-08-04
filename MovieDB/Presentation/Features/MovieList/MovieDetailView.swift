@@ -10,8 +10,8 @@ import Observation
 
 @Observable
 final class MovieDetailVewModel {
-    // Inject this dependency later using the Injected property wrapper
-//    private let movieService = MovieService()
+    @ObservationIgnored
+    @Injected(\.presentationDependencies.movieRepository) private var movieRepository: MovieRepository
     var trailerURL: URL?
     let movie: Movie
     
@@ -25,7 +25,7 @@ final class MovieDetailVewModel {
     
     func getMoviesTrailer() async {
         do {
-            let video = try await MovieService.shared.getMoviesTrailer(movieId: movie.id)
+            let video = try await movieRepository.getMoviesTrailer(movieId: movie.id)
             if let url = video?.youtubeURL {
                 trailerURL = url
             }
@@ -123,14 +123,6 @@ struct MovieDetailView: View {
             }
         }
     }
-    
-//    private func loadTrailer() async {
-//        do {
-//            trailerURL =  try await MovieService.shared.getMoviesTrailer(movieId: movie.id)?.youtubeURL
-//        } catch {
-//            print("Failed to fetch video: \(error.localizedDescription)")
-//        }
-//    }
 }
 
 #Preview {

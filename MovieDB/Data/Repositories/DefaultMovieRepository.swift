@@ -10,7 +10,6 @@ import Foundation
 import SwiftData
 
 final class DefaultMovieRepository: MovieRepository {
-    
     private let movieService: MovieService
     private let swiftDataStore: ModelContainer
     
@@ -109,5 +108,10 @@ final class DefaultMovieRepository: MovieRepository {
         }
         
         try swiftDataStore.mainContext.save()
+    }
+    
+    @MainActor
+    func getMoviesTrailer(movieId: Int) async throws -> Video? {
+        try await movieService.getMoviesTrailer(movieId: movieId)
     }
 }
