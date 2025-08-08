@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		085B87742E46732C008F7FB3 /* TestPlan.xctestplan in Resources */ = {isa = PBXBuildFile; fileRef = 085B87732E46732C008F7FB3 /* TestPlan.xctestplan */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		086BF2AD2E334DD300AC5456 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -24,6 +28,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		085B87732E46732C008F7FB3 /* TestPlan.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = text; path = TestPlan.xctestplan; sourceTree = "<group>"; };
 		086BF29D2E334DD200AC5456 /* MovieDB.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MovieDB.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		086BF2AC2E334DD300AC5456 /* MovieDBTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MovieDBTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		086BF2B62E334DD300AC5456 /* MovieDBUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MovieDBUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -75,6 +80,7 @@
 		086BF2942E334DD200AC5456 = {
 			isa = PBXGroup;
 			children = (
+				085B87732E46732C008F7FB3 /* TestPlan.xctestplan */,
 				086BF29F2E334DD200AC5456 /* MovieDB */,
 				086BF2AF2E334DD300AC5456 /* MovieDBTests */,
 				086BF2B92E334DD300AC5456 /* MovieDBUITests */,
@@ -212,6 +218,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				085B87742E46732C008F7FB3 /* TestPlan.xctestplan in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -11,7 +11,7 @@ struct MovieResponse: Decodable {
     let results: [Movie]
 }
 
-struct Movie: Decodable, Identifiable {
+struct Movie: Decodable, Identifiable, Sendable, Equatable {
     let id: Int
     let overview: String
     let title: String

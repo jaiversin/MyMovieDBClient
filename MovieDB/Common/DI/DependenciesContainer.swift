@@ -12,7 +12,7 @@ struct DependenciesContainer {
     static var shared: DependenciesContainer!
     
     struct PresentationDependencies {
-        let movieRepository: MovieRepository
+        var movieRepository: MovieRepository
         let favoritesStore: FavoritesStore
     }
     
@@ -22,7 +22,7 @@ struct DependenciesContainer {
         let swiftDataContainer: ModelContainer
     }
     
-    let presentationDependencies: PresentationDependencies
+    var presentationDependencies: PresentationDependencies
     let dataDependencies: DataDependencies
     
     init(modelContainer: ModelContainer) {

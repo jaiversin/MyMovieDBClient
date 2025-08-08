@@ -1,0 +1,53 @@
+{
+  "configurations" : [
+    {
+      "id" : "9965E5B5-03A7-4DC6-9B6F-B7142D46268E",
+      "name" : "Configuration 1",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "testTimeoutsEnabled" : true
+  },
+  "testTargets" : [
+    {
+      "selectedTests" : {
+        "suites" : [
+          {
+            "name" : "MovieDBTests",
+            "testFunctions" : [
+              "example()"
+            ]
+          }
+        ],
+        "xctestClasses" : [
+          {
+            "name" : "DefaultMovieRepositoryTests",
+            "xctestMethods" : [
+              "test_cacheStaleness_and_clearing()",
+              "test_getPopularMovies_whenCacheIsPopulated_shouldFetchFromDatabase()",
+              "test_getPopularMovies_whenDatabaseIsEmpty_shouldFetchFromNetworkAndSave()"
+            ]
+          },
+          {
+            "name" : "MovieListViewModelTests",
+            "xctestMethods" : [
+              "test_fetchInitialMovies_failure()",
+              "test_fetchInitialMovies_success()",
+              "test_fetchNextPageMovies_appendsNewMoviesCorrectly()",
+              "test_fetchNextPageMovies_doesNotAddDuplicates()"
+            ]
+          }
+        ]
+      },
+      "target" : {
+        "containerPath" : "container:MovieDB.xcodeproj",
+        "identifier" : "086BF2AB2E334DD300AC5456",
+        "name" : "MovieDBTests"
+      }
+    }
+  ],
+  "version" : 1
+}

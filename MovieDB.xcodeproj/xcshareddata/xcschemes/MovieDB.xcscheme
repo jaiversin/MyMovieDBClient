@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Scheme
+   LastUpgradeVersion = "1630"
+   version = "1.7">
+   <BuildAction
+      parallelizeBuildables = "YES"
+      buildImplicitDependencies = "YES"
+      buildArchitectures = "Automatic">
+      <BuildActionEntries>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "YES"
+            buildForProfiling = "YES"
+            buildForArchiving = "YES"
+            buildForAnalyzing = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "086BF29C2E334DD200AC5456"
+               BuildableName = "MovieDB.app"
+               BlueprintName = "MovieDB"
+               ReferencedContainer = "container:MovieDB.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
+      </BuildActionEntries>
+   </BuildAction>
+   <TestAction
+      buildConfiguration = "Debug"
+      selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
+      selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
+      shouldUseLaunchSchemeArgsEnv = "YES">
+      <TestPlans>
+         <TestPlanReference
+            reference = "container:MovieDB.xctestplan">
+         </TestPlanReference>
+         <TestPlanReference
+            reference = "container:TestPlan.xctestplan"
+            default = "YES">
+         </TestPlanReference>
+      </TestPlans>
+      <Testables>
+         <TestableReference
+            skipped = "NO"
+            parallelizable = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "086BF2AB2E334DD300AC5456"
+               BuildableName = "MovieDBTests.xctest"
+               BlueprintName = "MovieDBTests"
+               ReferencedContainer = "container:MovieDB.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO"
+            parallelizable = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "086BF2B52E334DD300AC5456"
+               BuildableName = "MovieDBUITests.xctest"
+               BlueprintName = "MovieDBUITests"
+               ReferencedContainer = "container:MovieDB.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "086BF2AB2E334DD300AC5456"
+               BuildableName = "MovieDBTests.xctest"
+               BlueprintName = "MovieDBTests"
+               ReferencedContainer = "container:MovieDB.xcodeproj">
+            </BuildableReference>
+            <SelectedTests>
+               <Test
+                  Identifier = "DefaultMovieRepositoryTests/test_cacheStaleness_and_clearing()">
+               </Test>
+               <Test
+                  Identifier = "DefaultMovieRepositoryTests/test_getPopularMovies_whenCacheIsPopulated_shouldFetchFromDatabase()">
+               </Test>
+               <Test
+                  Identifier = "DefaultMovieRepositoryTests/test_getPopularMovies_whenDatabaseIsEmpty_shouldFetchFromNetworkAndSave()">
+               </Test>
+               <Test
+                  Identifier = "MovieDBTests/example()">
+               </Test>
+               <Test
+                  Identifier = "MovieListViewModelTests/test_fetchInitialMovies_failure()">
+               </Test>
+               <Test
+                  Identifier = "MovieListViewModelTests/test_fetchInitialMovies_success()">
+               </Test>
+               <Test
+                  Identifier = "MovieListViewModelTests/test_fetchNextPageMovies_appendsNewMoviesCorrectly()">
+               </Test>
+               <Test
+                  Identifier = "MovieListViewModelTests/test_fetchNextPageMovies_doesNotAddDuplicates()">
+               </Test>
+            </SelectedTests>
+         </TestableReference>
+      </Testables>
+   </TestAction>
+   <LaunchAction
+      buildConfiguration = "Debug"
+      selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
+      selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
+      launchStyle = "0"
+      useCustomWorkingDirectory = "NO"
+      ignoresPersistentStateOnLaunch = "NO"
+      debugDocumentVersioning = "YES"
+      debugServiceExtension = "internal"
+      allowLocationSimulation = "YES">
+      <BuildableProductRunnable
+         runnableDebuggingMode = "0">
+         <BuildableReference
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "086BF29C2E334DD200AC5456"
+            BuildableName = "MovieDB.app"
+            BlueprintName = "MovieDB"
+            ReferencedContainer = "container:MovieDB.xcodeproj">
+         </BuildableReference>
+      </BuildableProductRunnable>
+   </LaunchAction>
+   <ProfileAction
+      buildConfiguration = "Release"
+      shouldUseLaunchSchemeArgsEnv = "YES"
+      savedToolIdentifier = ""
+      useCustomWorkingDirectory = "NO"
+      debugDocumentVersioning = "YES">
+      <BuildableProductRunnable
+         runnableDebuggingMode = "0">
+         <BuildableReference
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "086BF29C2E334DD200AC5456"
+            BuildableName = "MovieDB.app"
+            BlueprintName = "MovieDB"
+            ReferencedContainer = "container:MovieDB.xcodeproj">
+         </BuildableReference>
+      </BuildableProductRunnable>
+   </ProfileAction>
+   <AnalyzeAction
+      buildConfiguration = "Debug">
+   </AnalyzeAction>
+   <ArchiveAction
+      buildConfiguration = "Release"
+      revealArchiveInOrganizer = "YES">
+   </ArchiveAction>
+</Scheme>
