@@ -7,6 +7,7 @@
 
 import SwiftUI
 import Observation
+import OSLog
 
 @Observable
 final class MovieDetailVewModel {
@@ -20,6 +21,7 @@ final class MovieDetailVewModel {
     }
     
     deinit {
+//        Logger.movieDB.info("Movie Detail ViewModel for \(self.movie.title) deinitialized")
 //        print("Movie Detail ViewModel for \(movie.title) deinitialized")
     }
     
@@ -30,7 +32,7 @@ final class MovieDetailVewModel {
                 trailerURL = url
             }
         } catch {
-            print("Unable to fetch trailer URL")
+            Logger.movieDB.error("Unable to fetch trailer URL")
         }
     }
 }
@@ -81,7 +83,7 @@ struct MovieDetailView: View {
                     // create a starts base rating usinge voteAverage
                     VStack {
                         HStack(alignment: .center, spacing: 1) {
-                            ForEach(0..<Int(viewModel.movie.voteAverage / 2)) { _ in
+                            ForEach(0..<viewModel.movie.starsAverage) { _ in
                                 Image(systemName: "star.fill")
                                     .foregroundColor(.yellow)
                                     .font(.system(size: 12))

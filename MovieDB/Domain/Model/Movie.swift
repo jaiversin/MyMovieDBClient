@@ -21,6 +21,8 @@ struct Movie: Decodable, Identifiable {
     let voteAverage: Double
     
     var posterPathURL: URL? { MovieConstants.posterBaseURL?.appending(path: posterPath ?? "") }
+    
+    var starsAverage: Int { Int(voteAverage / 2) }
 }
 
 extension Movie {

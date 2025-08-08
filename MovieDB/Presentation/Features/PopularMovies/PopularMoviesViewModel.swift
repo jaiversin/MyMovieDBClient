@@ -6,11 +6,12 @@
 //
 
 import Foundation
+import OSLog
 import Observation
 import Combine
 import SwiftData
 
-@Observable class MovieListViewModel {
+@Observable class PopularMoviesViewModel {
     // MARK: - Injected Properties
     @Injected(\.presentationDependencies.movieRepository) @ObservationIgnored private var movieRepository: MovieRepository
 
@@ -41,7 +42,7 @@ import SwiftData
 
     deinit {
         searchTask?.cancel()
-        print("deinit MovieListViewModel")
+        Logger.movieDB.info("deinit MovieListViewModel")
     }
 
     // MARK: - Public API

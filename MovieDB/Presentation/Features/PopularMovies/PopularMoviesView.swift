@@ -7,7 +7,7 @@
 import SwiftUI
 
 struct PopularMoviesView: View {
-    @State private var movieListViewModel = MovieListViewModel()
+    @State private var viewModel = PopularMoviesViewModel()
     private let columns: [GridItem] = Array(repeating: .init(.flexible()), count: 2)
     
     @State private var searchText: String = ""
@@ -15,18 +15,18 @@ struct PopularMoviesView: View {
         ScrollView {
             ZStack {
                 // This could be better handled by an enum with possible states of the view and a switch
-                if movieListViewModel.isLoading {
+                if viewModel.isLoading {
                     ProgressView {
                         Text("Loading...")
                     }
-                } else if let errorMessage = movieListViewModel.errorMessage {
+                } else if let errorMessage = viewModel.errorMessage {
                     Text(errorMessage)
                         .font(.headline)
                         .foregroundStyle(.red)
                         .padding()
                 } else {
                     LazyVGrid(columns: columns, spacing: 15) {
-                        ForEach(movieListViewModel.filteredMovies) { movie in
+                        ForEach(viewModel.filteredMovies) { movie in
                             NavigationLink(destination: MovieDetailView(movie: movie)) {
                                 MovieCardView(movie: movie)
                             }
@@ -35,7 +35,7 @@ struct PopularMoviesView: View {
                                 // Option 1 for infinite scrolling
                                 // Trade-offs: Does not need Geometry reader or screen position
                                 // But calls the function for every movie
-                                movieListViewModel.fetchMoreMoviesIfNeeded(movie.id)
+                                viewModel.fetchMoreMoviesIfNeeded(movie.id)
                             }
                         }
                     }
@@ -47,18 +47,18 @@ struct PopularMoviesView: View {
         .navigationTitle("Popular Movies")
         .searchable(text: $searchText, prompt: "Search")
         .onChange(of: searchText) { _, newValue in
-            movieListViewModel.searchQuery = newValue
+            viewModel.searchQuery = newValue
         }
 //            .searchable(debouncingBy: 0.5) { value in
 //                movieListViewModel.searchQuery = value
 //            }
         .task {
-            if movieListViewModel.filteredMovies.isEmpty {
-                await movieListViewModel.fetchInitialMovies()
+            if viewModel.filteredMovies.isEmpty {
+                await viewModel.fetchInitialMovies()
             }
         }
         .refreshable {
-            await movieListViewModel.fetchInitialMovies()
+            await viewModel.fetchInitialMovies()
         }
     }
 }

@@ -8,6 +8,8 @@
 
 import Foundation
 import SwiftData
+import OSLog
+import os.signpost
 
 final class DefaultMovieRepository: MovieRepository {
     private let movieService: MovieServiceProtocol
@@ -20,7 +22,8 @@ final class DefaultMovieRepository: MovieRepository {
     
     @MainActor
     func getPopularMovies(page: Int) async throws -> [Movie] {
-        
+        os_signpost(.begin, log: .pointsOfInterest, name: "Complete getPopularMovies")
+        os_signpost(.begin, log: .dataFetchSignpost, name: "getPopularMovies from DB")
         let voteAverageSortDescriptor = SortDescriptor(\PersistentMovie.voteAverage, order: .reverse)
         var descriptor = FetchDescriptor<PersistentMovie>(sortBy: [voteAverageSortDescriptor])
         descriptor.fetchLimit = 20
@@ -28,19 +31,28 @@ final class DefaultMovieRepository: MovieRepository {
 
         let persistedMovies = try? swiftDataStore.mainContext.fetch(descriptor)
         
+        os_signpost(.end, log: .dataFetchSignpost, name: "getPopularMovies from DB")
         if let persistedMovies, !persistedMovies.isEmpty {
+            Logger.movieDB.info("Returning cached movies")
             return persistedMovies.map { MovieMapper.toDomain(model: $0) }
         }
         
+        os_signpost(.begin, log: .dataFetchSignpost, name: "getPopularMovies from API")
+        Logger.movieDB.info("Fetching movies from API...")
         let popularMovies = try await movieService.fetchPopularMovies(page: page, forceRefresh: false)
+        os_signpost(.end, log: .pointsOfInterest, name: "getPopularMovies from API")
         
+        
+        Logger.movieDB.info("Storing movies into DB...")
+        os_signpost(.begin, log: .pointsOfInterest, name: "Storing movies to DB")
         for movie in popularMovies {
             let persistentMovie = MovieMapper.toPersistent(model: movie)
             swiftDataStore.mainContext.insert(persistentMovie)
         }
         
         try? swiftDataStore.mainContext.save()
-        
+        os_signpost(.end, log: .dataFetchSignpost, name: "Storing movies to DB")
+        os_signpost(.end, log: .pointsOfInterest, name: "Complete getPopularMovies")
         return popularMovies
     }
     
@@ -59,9 +71,11 @@ final class DefaultMovieRepository: MovieRepository {
         )
         
         if let persistedMovie = try? swiftDataStore.mainContext.fetch(fetchDescriptor).first {
+            Logger.movieDB.info("Returning cached movies")
             return MovieMapper.toDomain(model: persistedMovie)
         }
 
+        Logger.movieDB.info("Fetching movie from API...")
         // If not found locally, fetch from the network
         let movie = try await movieService.getMovieDetails(id: id)
         
@@ -75,6 +89,7 @@ final class DefaultMovieRepository: MovieRepository {
     
     @MainActor
     func clearPopularMovieCache() async throws {
+        Logger.movieDB.info("Returning cached movies")
         try swiftDataStore.mainContext.delete(model: PersistentMovie.self)
         try swiftDataStore.mainContext.delete(model: CacheMetadata.self)
         try swiftDataStore.mainContext.save()
@@ -90,7 +105,7 @@ final class DefaultMovieRepository: MovieRepository {
             return true // No metadata, so it's stale
         }
         
-        let sixHoursAgo = Calendar.current.date(byAdding: .hour, value: -6, to: Date())!
+        let sixHoursAgo = Calendar.current.date(byAdding: .minute, value: -6, to: Date())!
         return metadata.lastRefreshed < sixHoursAgo
     }
     

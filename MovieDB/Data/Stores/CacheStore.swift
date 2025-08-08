@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import OSLog
 
 final class CacheStore<Key: NSObject, Value: AnyObject> {
     private let cache = NSCache<Key, Value>()
@@ -34,7 +35,7 @@ final class PaginatedCacheStore {
     }
     
     func invalidateAll() {
-        print("Invalidating all cache entries...")
+        Logger.movieDB.log("Invalidating all cache entries...")
         keys.forEach { cache.removeObject(forKey: $0) }
         keys.removeAll()
     }

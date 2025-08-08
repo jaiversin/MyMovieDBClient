@@ -6,6 +6,7 @@
 //
 import Foundation
 import Combine
+import OSLog
 
 enum MovieConstants {
     static var posterBaseURL = URL(string: "https://image.tmdb.org/t/p/w500")
@@ -41,11 +42,12 @@ final class MovieService: MovieServiceProtocol {
         let cacheKey = query as NSString
         
         if let cachedDataWrapper = movieSearchCache.object(forKey: cacheKey) {
-            print("Returning search results for \(query) from cache...")
+            Logger.movieDB.error("Returning search results for \(query) from cache...")
             return cachedDataWrapper.movies
         }
         
         print(#function, "Fetching search results for \(query) from API...")
+//        os_signpost() .pointsOfInterest.signpostsEnabled = true
 
         let url = MovieConstants.baseURL
             .appending(path: "search/movie")
@@ -74,7 +76,7 @@ final class MovieService: MovieServiceProtocol {
             return movies
         }
         catch {
-            print("Failed to decode: \(error)")
+            Logger.movieDB.error("Failed to decode: \(error)")
             throw error
         }
     }
@@ -110,6 +112,7 @@ final class MovieService: MovieServiceProtocol {
         
         // If response was successful
         guard let httpResponse = response as? HTTPURLResponse, 200..<300 ~= httpResponse.statusCode else {
+            Logger.movieDB.error("Failed to fetch popular movies. HTTP status code: \(String(describing: (response as? HTTPURLResponse)?.statusCode))")
             // If not successful, throw an error. This can be improved by defining our own errors but by now we can leave it generic
             throw URLError(.badServerResponse)
         }
@@ -124,7 +127,7 @@ final class MovieService: MovieServiceProtocol {
             return movies
         }
         catch {
-            print("Failed to decode: \(error)")
+            Logger.movieDB.error("Failed to decode: \(error)")
             throw error
         }
     }
@@ -144,7 +147,7 @@ final class MovieService: MovieServiceProtocol {
             let movie = try jsonDecoder.decode(Movie.self, from: responseData)
             return movie
         } catch {
-            print("Failed to decode movie details: \(error)")
+            Logger.movieDB.error("Failed to decode movie details: \(error)")
             throw error
         }
     }
@@ -169,7 +172,7 @@ final class MovieService: MovieServiceProtocol {
             return movies.results.filter { $0.isTrailerOnYoutube }.first
         }
         catch {
-            print("Failed to decode: \(error)")
+            Logger.movieDB.error("Failed to decode: \(error)")
             throw error
         }
     }

@@ -6,13 +6,14 @@
 //
 
 import SwiftUI
+import OSLog
 import AVKit
 
 struct VideoPlayerView: UIViewControllerRepresentable {
     let videoURL: URL
     
     func makeUIViewController(context: Context) -> some AVPlayerViewController {
-        print("creating video controller for URL: \(videoURL)")
+        Logger.movieDB.info("creating video controller for URL: \(videoURL)")
         let playerController = AVPlayerViewController()
         playerController.player = AVPlayer(url: videoURL)
         playerController.allowsPictureInPicturePlayback = true
@@ -21,7 +22,7 @@ struct VideoPlayerView: UIViewControllerRepresentable {
     }
     
     func updateUIViewController(_ uiViewController: UIViewControllerType, context: Context) {
-        print("updating video controller")
+        Logger.movieDB.info("updating video controller")
     }
     
     
