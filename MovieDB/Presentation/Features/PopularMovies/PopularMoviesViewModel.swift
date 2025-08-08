@@ -86,8 +86,15 @@ import SwiftData
             if fetchedMovies.isEmpty {
                 canLoadMorePages = false
             } else {
-                popularMovies.append(contentsOf: fetchedMovies)
-                filteredMovies.append(contentsOf: fetchedMovies)
+                let existingMovieIDs = Set(popularMovies.map { $0.id })
+                let uniqueNewMovies = fetchedMovies.filter { !existingMovieIDs.contains($0.id) }
+
+                if uniqueNewMovies.isEmpty {
+                    canLoadMorePages = false
+                } else {
+                    popularMovies.append(contentsOf: uniqueNewMovies)
+                    filteredMovies.append(contentsOf: uniqueNewMovies)
+                }
             }
         } catch {
             currentPage -= 1 // Give the user a chance to re-try
