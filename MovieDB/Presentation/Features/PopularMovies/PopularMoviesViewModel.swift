@@ -19,24 +19,26 @@ import SwiftData
     var filteredMovies: [Movie] = []
     var errorMessage: String?
     var isLoading: Bool = false
+    
     var searchQuery: String = "" {
         didSet {
             // Debounce search
             searchTask?.cancel()
-            let task = Task {
+            searchTask = Task {
                 try await Task.sleep(for: .seconds(0.5))
                 await performSearch()
             }
-            searchTask = task
         }
     }
+    private var searchTask: Task<Void, Error>?
+    private var cancellables: Set<AnyCancellable> = []
 
     // MARK: - Private Properties
     private var popularMovies: [Movie] = []
     private var currentPage = 1
     private var canLoadMorePages = true
     private var isFetchingNextPage = false
-    private var searchTask: Task<Void, Error>?
+    
 
     init() {}
 
@@ -79,29 +81,61 @@ import SwiftData
         guard !isFetchingNextPage, canLoadMorePages, searchQuery.isEmpty else { return }
 
         isFetchingNextPage = true
+        defer { isFetchingNextPage = false }
         currentPage += 1
 
-        do {
-            let fetchedMovies = try await movieRepository.getPopularMovies(page: currentPage)
-            if fetchedMovies.isEmpty {
-                canLoadMorePages = false
-            } else {
-                let existingMovieIDs = Set(popularMovies.map { $0.id })
-                let uniqueNewMovies = fetchedMovies.filter { !existingMovieIDs.contains($0.id) }
-
-                if uniqueNewMovies.isEmpty {
-                    canLoadMorePages = false
-                } else {
-                    popularMovies.append(contentsOf: uniqueNewMovies)
-                    filteredMovies.append(contentsOf: uniqueNewMovies)
+        movieRepository.fetchPopularMoviesPublisher(page: currentPage)
+            .receive(on: RunLoop.main)
+            .sink(receiveCompletion: { [weak self] completion in
+                switch completion {
+                case .finished:
+                    Logger.movieDB.info("Fetching completed")
+                    break
+                case .failure(let error):
+                    self?.currentPage -= 1 // Give the user a chance to re-try
+                    self?.errorMessage = "Failed to fetch next page: \(error.localizedDescription)"
+                    Logger.movieDB.error("Error \(error)")
                 }
-            }
-        } catch {
-            currentPage -= 1 // Give the user a chance to re-try
-            errorMessage = "Failed to fetch next page: \(error.localizedDescription)"
-        }
+            }, receiveValue: { [weak self] fetchedMovies in
+                guard let self else { return }
+                Logger.movieDB.info("Received \(fetchedMovies.count) movies for page \(self.currentPage)")
+                if fetchedMovies.isEmpty {
+                    self.canLoadMorePages = false
+                } else {
+                    let existingMovieIDs = Set(self.popularMovies.map { $0.id })
+                    let uniqueNewMovies = fetchedMovies.filter { !existingMovieIDs.contains($0.id) }
+
+                    if uniqueNewMovies.isEmpty {
+                        canLoadMorePages = false
+                    } else {
+                        self.popularMovies.append(contentsOf: uniqueNewMovies)
+                        filteredMovies.append(contentsOf: uniqueNewMovies)
+                    }
+                }
+            })
+            .store(in: &cancellables)
         
-        isFetchingNextPage = false
+//        do {
+//            let fetchedMovies = try await movieRepository.getPopularMovies(page: currentPage)
+//            if fetchedMovies.isEmpty {
+//                canLoadMorePages = false
+//            } else {
+//                let existingMovieIDs = Set(popularMovies.map { $0.id })
+//                let uniqueNewMovies = fetchedMovies.filter { !existingMovieIDs.contains($0.id) }
+//
+//                if uniqueNewMovies.isEmpty {
+//                    canLoadMorePages = false
+//                } else {
+//                    popularMovies.append(contentsOf: uniqueNewMovies)
+//                    filteredMovies.append(contentsOf: uniqueNewMovies)
+//                }
+//            }
+//        } catch {
+//            currentPage -= 1 // Give the user a chance to re-try
+//            errorMessage = "Failed to fetch next page: \(error.localizedDescription)"
+//        }
+        
+        
     }
 
     func fetchMoreMoviesIfNeeded(_ movieId: Int) {

@@ -8,6 +8,7 @@
 
 import Foundation
 import SwiftData
+import Combine
 import OSLog
 import os.signpost
 
@@ -128,5 +129,9 @@ final class DefaultMovieRepository: MovieRepository {
     @MainActor
     func getMoviesTrailer(movieId: Int) async throws -> Video? {
         try await movieService.getMoviesTrailer(movieId: movieId)
+    }
+    
+    func fetchPopularMoviesPublisher(page: Int) -> AnyPublisher<[Movie], Error> {
+        movieService.fetchPopularMoviesPublisher(page: page)
     }
 }

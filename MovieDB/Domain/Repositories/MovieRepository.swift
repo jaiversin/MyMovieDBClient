@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import Combine
 
 protocol MovieRepository {
     func getPopularMovies(page: Int) async throws -> [Movie]
@@ -16,4 +17,5 @@ protocol MovieRepository {
     func clearPopularMovieCache() async throws
     func isPopularMoviesCacheStale() async -> Bool
     func updatePopularMoviesCacheTimestamp() async throws
+    func fetchPopularMoviesPublisher(page: Int) -> AnyPublisher<[Movie], Error>
 }
